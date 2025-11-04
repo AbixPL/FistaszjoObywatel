@@ -7,7 +7,7 @@
 </head>
 <body>
     <img src="https://play-lh.googleusercontent.com/_TNbiYKasPy_isTSEg2_UEzVaev4F8fO2lLunsHJ8_Ux2g3OzkSZyzpqvJG1woSj-WD4" class="logo">
-    <p class="logo_text">FistaszjoObywatel 4.2.0</p>
+    <p class="logo_text">FistaszjoCwelbywatel 4.2.0</p>
 
     <div class="guide_holder">
         <div class="top_holder">
@@ -28,6 +28,22 @@
                 <li>Naciśji 3 kropki -> Dodaj do ekranu głównego</li>
             </ul>
         </div>
+    </div>
+
+    <!-- === Updated Upload Section (with ImgBB) === -->
+    <div class="upload">
+        <p class="error">To pole jest wymagane</p>
+        <img class="upload_uploaded" id="uploadedImage" style="display:none;">
+        <div class="upload_uploading" id="uploadProgress" style="display:none;"></div>
+        <div class="upload_grid">
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <img class="upload_image" src="https://i.imgur.com/vwIQErh.png" id="uploadButton">
+            <p class="upload_text">Dodaj zdjęcie</p>
+        </div>
+        <!-- hidden input for image URL -->
+        <input type="hidden" id="uploadedImageUrl" name="uploadedImageUrl">
+    </div>
+    <!-- ============================================ -->
 
     <div class="input_holder">
         <input type="text" id="name" class="input" placeholder="">
@@ -61,14 +77,8 @@
         <p class="top_info">Data urodzenia</p>
         <div class="date_grid">
             <input class="date_input" placeholder="DD" type="number">
-    
-            </input>
             <input class="date_input" placeholder="MM" type="number">
-    
-            </input>
             <input class="date_input" placeholder="YYYY" type="number">
-    
-            </input>
         </div>
         <p class="error">Wprowadź prawidłową datę</p>
     </div>
@@ -133,65 +143,55 @@
 
     <script src="assets/index.js"></script>
     <script src="assets/manifest.js"></script>
-    <div class="upload">
-    <p class="error" id="uploadError">To pole jest wymagane</p>
-    <img class="upload_uploaded" id="uploadedImage" style="display:none;">
 
-            </div>
-    <div class="upload_grid" id="uploadGrid">
-        <img class="upload_image" src="https://i.imgur.com/vwIQErh.png" alt="Upload icon">
-        <p class="upload_text">Dodaj zdjęcie</p>
-        <input type="file" id="imageInput" accept="image/*" style="display:none;">
-    </div>
-</div>
-    
-        <script>
-const imgbbAPIKey = "8ca5d96c7a478e5a16bb17c74a37f819"; // 🔹 Replace with your actual API key from imgbb.com
-const imageInput = document.getElementById("imageInput");
-const uploadGrid = document.getElementById("uploadGrid");
-const uploadedImage = document.getElementById("uploadedImage");
-const uploadError = document.getElementById("uploadError");
+    <!-- === ImgBB Upload Script === -->
+    <script>
+        const uploadButton = document.getElementById("uploadButton");
+        const fileInput = document.getElementById("fileInput");
+        const uploadedImage = document.getElementById("uploadedImage");
+        const uploadProgress = document.getElementById("uploadProgress");
+        const uploadedImageUrl = document.getElementById("uploadedImageUrl");
 
-uploadGrid.addEventListener("click", () => {
-    imageInput.click();
-});
+        const imgbbKey = "YOUR_IMGBB_API_KEY"; // Replace with your real key
 
-imageInput.addEventListener("change", async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+        uploadButton.addEventListener("click", () => fileInput.click());
 
-    uploadError.style.display = "none";
-    uploadGrid.querySelector(".upload_text").textContent = "Wysyłanie...";
+        fileInput.addEventListener("change", async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
 
-    try {
-        const formData = new FormData();
-        formData.append("image", file);
+            uploadProgress.textContent = "Wysyłanie...";
+            uploadProgress.style.display = "block";
+            uploadProgress.style.color = "black";
 
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbAPIKey}`, {
-            method: "POST",
-            body: formData
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onload = async () => {
+                const base64Image = reader.result.split(",")[1];
+                try {
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
+                        method: "POST",
+                        body: new URLSearchParams({ image: base64Image })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const imageUrl = data.data.url;
+                        uploadedImage.src = imageUrl;
+                        uploadedImage.style.display = "block";
+                        uploadProgress.textContent = "✅ Wysłano!";
+                        uploadProgress.style.color = "green";
+                        uploadedImageUrl.value = imageUrl;
+                    } else {
+                        uploadProgress.textContent = "Błąd wysyłania.";
+                        uploadProgress.style.color = "red";
+                    }
+                } catch (error) {
+                    console.error("Upload error:", error);
+                    uploadProgress.textContent = "Błąd połączenia.";
+                    uploadProgress.style.color = "red";
+                }
+            };
         });
-
-        const data = await res.json();
-
-        if (data.success) {
-            uploadedImage.src = data.data.url;
-            uploadedImage.style.display = "block";
-            uploadGrid.style.display = "none";
-        } else {
-            throw new Error("Nie udało się przesłać obrazu");
-        }
-    } catch (err) {
-        console.error(err);
-        uploadError.textContent = "Błąd podczas przesyłania obrazu";
-        uploadError.style.display = "block";
-        uploadGrid.querySelector(".upload_text").textContent = "Dodaj zdjęcie";
-    }
-});
-    
-
-</script>
+    </script>
 </body>
-
-
-
