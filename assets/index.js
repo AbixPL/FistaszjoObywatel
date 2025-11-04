@@ -163,7 +163,7 @@ function isEmpty(value){
 
 function forwardToId(params){
 
-    location.href = "/FistaszjoObywatel/kodzisko?" + params
+    location.href = "/FistaszjoObywatel/kodzisko.html?" + params
 
 }
 
@@ -177,5 +177,6 @@ guide.addEventListener('click', () => {
     }
 
 })
+
 
 
